@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NAMI - 引越し家具提案アプリ</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Helvetica Neue', Arial, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', Meiryo, sans-serif;
+            background: #f5f0eb;
+            color: #2d2d2d;
+            min-height: 100vh;
+        }
+
+        header {
+            background: linear-gradient(135deg, #3a3a3a 0%, #1a1a2e 100%);
+            padding: 24px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .logo-icon {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, #c8a87c, #e8d5b7);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+        }
+
+        .logo h1 {
+            color: #e8d5b7;
+            font-size: 26px;
+            font-weight: 700;
+            letter-spacing: 4px;
+        }
+
+        .logo-sub {
+            color: #999;
+            font-size: 12px;
+            letter-spacing: 2px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+        }
+
+        .hero {
+            text-align: center;
+            margin-bottom: 48px;
+        }
+
+        .hero h2 {
+            font-size: 28px;
+            font-weight: 600;
+            color: #2d2d2d;
+            margin-bottom: 12px;
+        }
+
+        .hero p {
+            font-size: 16px;
+            color: #777;
+            max-width: 600px;
+            margin: 0 auto;
+            line-height: 1.7;
+        }
+
+        .upload-area {
+            background: white;
+            border: 2px dashed #c8a87c;
+            border-radius: 20px;
+            padding: 60px 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            max-width: 700px;
+            margin: 0 auto 40px;
+            position: relative;
+        }
+
+        .upload-area:hover {
+            border-color: #a0845c;
+            background: #fdfbf8;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(200, 168, 124, 0.15);
+        }
+
+        .upload-area.dragover {
+            border-color: #a0845c;
+            background: #faf5ee;
+        }
+
+        .upload-area.has-image {
+            border-style: solid;
+            padding: 20px;
+        }
+
+        .upload-icon {
+            font-size: 52px;
+            margin-bottom: 16px;
+        }
+
+        .upload-text {
+            font-size: 18px;
+            color: #555;
+            margin-bottom: 8px;
+        }
+
+        .upload-hint {
+            font-size: 13px;
+            color: #aaa;
+        }
+
+        .preview-container {
+            display: none;
+            position: relative;
+        }
+
+        .preview-container img {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 12px;
+            object-fit: contain;
+        }
+
+        .remove-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .analyze-btn {
+            display: none;
+            margin: 30px auto;
+            padding: 16px 48px;
+            background: linear-gradient(135deg, #c8a87c, #a0845c);
+            color: white;
+            border: none;
+            border-radius: 50px;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            letter-spacing: 1px;
+        }
+
+        .analyze-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(160, 132, 92, 0.35);
+        }
+
+        .analyze-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid #e8d5b7;
+            border-top: 4px solid #c8a87c;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            color: #777;
+            font-size: 16px;
+        }
+
+        .loading-sub {
+            color: #aaa;
+            font-size: 13px;
+            margin-top: 8px;
+        }
+
+        .results {
+            display: none;
+            margin-top: 20px;
+        }
+
+        .overview-card {
+            background: linear-gradient(135deg, #3a3a3a, #1a1a2e);
+            color: white;
+            border-radius: 20px;
+            padding: 36px;
+            margin-bottom: 32px;
+        }
+
+        .overview-card h3 {
+            color: #e8d5b7;
+            font-size: 20px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .overview-card p {
+            line-height: 1.8;
+            color: #ccc;
+            font-size: 15px;
+        }
+
+        .room-card {
+            background: white;
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.04);
+        }
+
+        .room-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 2px solid #f5f0eb;
+        }
+
+        .room-name {
+            font-size: 22px;
+            font-weight: 700;
+            color: #2d2d2d;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .room-size {
+            background: #f5f0eb;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            color: #888;
+        }
+
+        .furniture-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 16px;
+        }
+
+        .furniture-item {
+            background: #fdfbf8;
+            border: 1px solid #f0e8dd;
+            border-radius: 14px;
+            padding: 22px;
+            transition: all 0.3s ease;
+        }
+
+        .furniture-item:hover {
+            border-color: #c8a87c;
+            box-shadow: 0 4px 15px rgba(200, 168, 124, 0.12);
+        }
+
+        .furniture-type {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: #c8a87c;
+            font-weight: 700;
+            margin-bottom: 6px;
+        }
+
+        .furniture-name {
+            font-size: 17px;
+            font-weight: 700;
+            color: #2d2d2d;
+            margin-bottom: 4px;
+        }
+
+        .furniture-brand {
+            font-size: 13px;
+            color: #a0845c;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+
+        .furniture-details {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .detail-row {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            font-size: 13px;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .detail-row .label {
+            min-width: 20px;
+            text-align: center;
+        }
+
+        .furniture-price {
+            display: inline-block;
+            background: linear-gradient(135deg, #c8a87c, #a0845c);
+            color: white;
+            padding: 4px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-top: 10px;
+        }
+
+        .search-link {
+            display: inline-block;
+            margin-top: 10px;
+            margin-left: 8px;
+            padding: 4px 14px;
+            background: #f5f0eb;
+            color: #a0845c;
+            border-radius: 20px;
+            font-size: 12px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+
+        .search-link:hover {
+            background: #e8d5b7;
+            color: #6b5a3e;
+        }
+
+        .budget-card {
+            background: linear-gradient(135deg, #c8a87c, #a0845c);
+            color: white;
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .budget-card h3 {
+            font-size: 16px;
+            font-weight: 400;
+            margin-bottom: 8px;
+            opacity: 0.9;
+        }
+
+        .budget-amount {
+            font-size: 32px;
+            font-weight: 700;
+        }
+
+        .tips-card {
+            background: white;
+            border-radius: 20px;
+            padding: 32px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.04);
+        }
+
+        .tips-card h3 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2d2d2d;
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .tips-card ul {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .tips-card li {
+            padding: 12px 16px;
+            background: #fdfbf8;
+            border-radius: 10px;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #555;
+            border-left: 3px solid #c8a87c;
+        }
+
+        .error-msg {
+            display: none;
+            background: #fff0f0;
+            color: #cc4444;
+            padding: 16px 24px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 20px auto;
+            max-width: 700px;
+        }
+
+        .reset-btn {
+            display: none;
+            margin: 20px auto;
+            padding: 12px 36px;
+            background: white;
+            color: #888;
+            border: 2px solid #ddd;
+            border-radius: 50px;
+            font-size: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .reset-btn:hover {
+            border-color: #c8a87c;
+            color: #a0845c;
+        }
+
+        @media (max-width: 768px) {
+            header {
+                padding: 16px 20px;
+            }
+            .logo h1 {
+                font-size: 20px;
+            }
+            .hero h2 {
+                font-size: 22px;
+            }
+            .upload-area {
+                padding: 40px 20px;
+            }
+            .furniture-grid {
+                grid-template-columns: 1fr;
+            }
+            .room-card {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <div class="logo-icon">🏠</div>
+            <div>
+                <h1>NAMI</h1>
+                <div class="logo-sub">FURNITURE ADVISOR</div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <div class="hero">
+            <h2>間取り図から最適な家具を提案</h2>
+            <p>物件の間取り図をアップロードするだけで、AIがあなたの新居にぴったりの家具と配置を提案します。日本・韓国・海外ブランドから厳選。</p>
+        </div>
+
+        <div class="upload-area" id="uploadArea">
+            <div class="upload-content" id="uploadContent">
+                <div class="upload-icon">📐</div>
+                <div class="upload-text">間取り図をアップロード</div>
+                <div class="upload-hint">クリックまたはドラッグ＆ドロップ（PNG, JPG, WEBP対応）</div>
+            </div>
+            <div class="preview-container" id="previewContainer">
+                <img id="previewImage" src="" alt="プレビュー">
+                <button class="remove-btn" id="removeBtn" title="画像を削除">✕</button>
+            </div>
+            <input type="file" id="fileInput" accept="image/*" hidden>
+        </div>
+
+        <button class="analyze-btn" id="analyzeBtn">家具を提案してもらう</button>
+
+        <div class="error-msg" id="errorMsg"></div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <div class="loading-text">間取り図を分析中...</div>
+            <div class="loading-sub">AIが最適な家具と配置を検討しています</div>
+        </div>
+
+        <div class="results" id="results"></div>
+
+        <button class="reset-btn" id="resetBtn">別の間取り図を分析する</button>
+    </div>
+
+    <script>
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const uploadContent = document.getElementById('uploadContent');
+        const previewContainer = document.getElementById('previewContainer');
+        const previewImage = document.getElementById('previewImage');
+        const removeBtn = document.getElementById('removeBtn');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const loading = document.getElementById('loading');
+        const results = document.getElementById('results');
+        const errorMsg = document.getElementById('errorMsg');
+        const resetBtn = document.getElementById('resetBtn');
+
+        let selectedFile = null;
+
+        uploadArea.addEventListener('click', (e) => {
+            if (e.target === removeBtn || removeBtn.contains(e.target)) return;
+            fileInput.click();
+        });
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                handleFile(file);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files[0]) {
+                handleFile(e.target.files[0]);
+            }
+        });
+
+        function handleFile(file) {
+            selectedFile = file;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                previewImage.src = e.target.result;
+                uploadContent.style.display = 'none';
+                previewContainer.style.display = 'block';
+                uploadArea.classList.add('has-image');
+                analyzeBtn.style.display = 'block';
+                errorMsg.style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        removeBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            resetUpload();
+        });
+
+        function resetUpload() {
+            selectedFile = null;
+            fileInput.value = '';
+            previewImage.src = '';
+            uploadContent.style.display = 'block';
+            previewContainer.style.display = 'none';
+            uploadArea.classList.remove('has-image');
+            analyzeBtn.style.display = 'none';
+        }
+
+        analyzeBtn.addEventListener('click', async () => {
+            if (!selectedFile) return;
+
+            analyzeBtn.disabled = true;
+            analyzeBtn.textContent = '分析中...';
+            loading.style.display = 'block';
+            results.style.display = 'none';
+            resetBtn.style.display = 'none';
+            errorMsg.style.display = 'none';
+
+            const formData = new FormData();
+            formData.append('image', selectedFile);
+
+            try {
+                const response = await fetch('/analyze', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const result = await response.json();
+
+                if (result.error) {
+                    showError(result.error);
+                    return;
+                }
+
+                const data = typeof result.data === 'string' ? JSON.parse(result.data) : result.data;
+                renderResults(data);
+            } catch (err) {
+                showError('通信エラーが発生しました。もう一度お試しください。');
+            } finally {
+                loading.style.display = 'none';
+                analyzeBtn.disabled = false;
+                analyzeBtn.textContent = '家具を提案してもらう';
+            }
+        });
+
+        function showError(msg) {
+            errorMsg.textContent = msg;
+            errorMsg.style.display = 'block';
+            loading.style.display = 'none';
+        }
+
+        function renderResults(data) {
+            let html = '';
+
+            // Overview
+            html += `
+                <div class="overview-card">
+                    <h3>📋 間取り分析</h3>
+                    <p>${escapeHtml(data.overview || '')}</p>
+                </div>
+            `;
+
+            // Rooms
+            const roomIcons = ['🛋️', '🛏️', '🍳', '🚿', '📚', '👶', '🧺', '🏠'];
+            if (data.rooms) {
+                data.rooms.forEach((room, i) => {
+                    const icon = roomIcons[i % roomIcons.length];
+                    html += `
+                        <div class="room-card">
+                            <div class="room-header">
+                                <div class="room-name">${icon} ${escapeHtml(room.name)}</div>
+                                <div class="room-size">${escapeHtml(room.size_estimate || '')}</div>
+                            </div>
+                            <div class="furniture-grid">
+                    `;
+
+                    if (room.furniture) {
+                        room.furniture.forEach(item => {
+                            const searchQuery = encodeURIComponent(item.search_keyword || `${item.brand} ${item.product_name}`);
+                            const googleUrl = `https://www.google.com/search?q=${searchQuery}&tbm=shop`;
+
+                            html += `
+                                <div class="furniture-item">
+                                    <div class="furniture-type">${escapeHtml(item.item || '')}</div>
+                                    <div class="furniture-name">${escapeHtml(item.product_name || '')}</div>
+                                    <div class="furniture-brand">${escapeHtml(item.brand || '')}</div>
+                                    <div class="furniture-details">
+                                        <div class="detail-row">
+                                            <span class="label">📍</span>
+                                            <span>${escapeHtml(item.placement || '')}</span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="label">📏</span>
+                                            <span>${escapeHtml(item.size || '')}</span>
+                                        </div>
+                                        <div class="detail-row">
+                                            <span class="label">💡</span>
+                                            <span>${escapeHtml(item.reason || '')}</span>
+                                        </div>
+                                    </div>
+                                    <span class="furniture-price">${escapeHtml(item.price_range || '')}</span>
+                                    <a href="${googleUrl}" target="_blank" rel="noopener" class="search-link">商品を検索 →</a>
+                                </div>
+                            `;
+                        });
+                    }
+
+                    html += `
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+
+            // Budget
+            if (data.total_budget_estimate) {
+                html += `
+                    <div class="budget-card">
+                        <h3>合計予算の目安</h3>
+                        <div class="budget-amount">${escapeHtml(data.total_budget_estimate)}</div>
+                    </div>
+                `;
+            }
+
+            // Tips
+            if (data.tips && data.tips.length > 0) {
+                html += `
+                    <div class="tips-card">
+                        <h3>💡 インテリアのコツ</h3>
+                        <ul>
+                            ${data.tips.map(tip => `<li>${escapeHtml(tip)}</li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+
+            results.innerHTML = html;
+            results.style.display = 'block';
+            resetBtn.style.display = 'block';
+
+            results.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        resetBtn.addEventListener('click', () => {
+            resetUpload();
+            results.style.display = 'none';
+            resetBtn.style.display = 'none';
+            errorMsg.style.display = 'none';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    </script>
+</body>
+</html>
